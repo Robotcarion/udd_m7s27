@@ -1,25 +1,20 @@
 import joblib
 import warnings
+from flask import Flask
+from flask import request
+from flask import jsonify
 
 
 model = joblib.load('classifier.pkl')
 warnings.filterwarnings('ignore')
 
-def main():
+app = Flask(__name__)
 
-    data = {
-        "Age": 27.0,
-        "C":  0,
-        "Fare": 71.2833,
-        "Parch": 2,
-        "Pclass": 3,
-        "Q":  0,
-        "S": 1,
-        "SibSp": 3,
-        "female":  1,
-        "male":  0
-    }
-    
+@app.route('/predict', methods=['POST'])
+def predict():
+
+    data = request.json
+  
     data_values = [
         data['Age'],
         data["C"],
@@ -34,12 +29,16 @@ def main():
     ]
 
     prediction = model.predict([data_values])[0]
+    prediction = int(prediction)
     if prediction == 1:
-        print('El pasajero sobreviviria') 
+        msg = 'El pasajero sobreviviria' 
     else:
-        print('el pasajero no sobreviviria')
+        msg = 'el pasajero no sobreviviria'
 
-
+    return jsonify({
+        'msg': msg,
+        'prediction': prediction
+    })
 
 if __name__ == "__main__":
-    main()
+    app.run(port=8000, debug=True)
